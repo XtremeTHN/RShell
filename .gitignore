@@ -1,0 +1,5 @@
+/target
+.direnv
+build
+installation
+src/config.rs

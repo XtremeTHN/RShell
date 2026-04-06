@@ -1,0 +1,17 @@
+{
+    "[rust]": {
+        "editor.formatOnSave": true
+    },
+    "cSpell.words": [
+        "gresource",
+        "gresources",
+        "harddisk",
+        "klass",
+        "niri",
+        "Orientable",
+        "rshell",
+        "stripblanks",
+        "wkspc",
+        "Xtreme"
+    ]
+}

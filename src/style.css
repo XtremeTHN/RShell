@@ -1,0 +1,11 @@
+.workspace {
+    min-width: 8px;
+    min-height: 8px;
+    border-radius: 9999px;
+    background-color: alpha(white, 0.4);
+}
+
+.workspace.active {
+    min-width: 18px;
+    background-color: alpha(white, 0.9);
+}

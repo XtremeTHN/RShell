@@ -1,0 +1,23 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Bar: Adw.ApplicationWindow {
+    height-request: 40;
+    content: CenterBox {
+        start-widget: Box {
+            orientation: horizontal;
+            // impl in src/bar/ui/
+            $Workspaces {
+                orientation: horizontal;
+                valign: center;
+                spacing: 5;
+            }
+            Label active_window {}
+        };
+
+        // end-widget: Box {
+        //     orientation: horizontal;
+        //     Label time {}
+        // };
+    };
+}
