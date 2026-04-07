@@ -23,7 +23,7 @@
       gtk4-layer-shell
     ];
 
-    pname = "shell";
+    pname = "rshell";
     version = "0.1.0";
     src = ./.;
   in {
@@ -32,11 +32,8 @@
       RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
       
       packages = with pkgs; [
-        flatpak-builder
         rust-analyzer
         rustfmt
-        d-spy
-        ghex
       ];
     };
 
@@ -46,7 +43,7 @@
 
       cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
         inherit pname version src;
-        hash = "sha256-s8cEWMsSGtSxgYNzx02eG52k36v1wbSKSf4omNEdqFc=";
+        hash = "sha256-pqA1NJzpKr4Sjonclt5xDu/6QhX59KgCmQw6oijYApQ=";
       };
 
       inherit nativeBuildInputs buildInputs;
