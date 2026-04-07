@@ -7,5 +7,6 @@
   </gresource>
 
   <gresource prefix="/com/github/XtremeTHN/RShell/icons/scalable/actions">
+    <file alias="nix-snowflake.svg" preprocess="xml-stripblanks">icons/nix-snowflake.svg</file>
   </gresource>
 </gresources>

@@ -47,9 +47,3 @@ glib::wrapper! {
         @extends gtk::Widget, gtk::Box,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
-
-impl Workspaces {
-    fn new() -> Self {
-        Object::builder().build()
-    }
-}

@@ -1,3 +1,4 @@
+mod active_window;
 mod workspace;
 mod workspaces;
 
@@ -12,7 +13,10 @@ use crate::application::RShellApp;
 use gtk4_layer_shell::LayerShell;
 
 mod imp {
-    use crate::{tools::layer::set_anchors, ui::bar::workspaces::Workspaces};
+    use crate::{
+        tools::layer::set_anchors,
+        ui::bar::{active_window::ActiveWindow, workspaces::Workspaces},
+    };
     use std::cell::RefCell;
 
     use gtk::glib::subclass::InitializingObject;
@@ -28,6 +32,8 @@ mod imp {
     #[template(resource = "/com/github/XtremeTHN/RShell/bar.ui")]
     pub struct Bar {
         pub niri: OptionalRef<Niri>,
+        #[template_child]
+        pub time: TemplateChild<gtk::Label>,
     }
 
     #[glib::object_subclass]
@@ -38,6 +44,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             Workspaces::ensure_type();
+            ActiveWindow::ensure_type();
 
             klass.bind_template();
         }
@@ -56,7 +63,7 @@ mod imp {
             obj.set_layer(Layer::Top);
             obj.auto_exclusive_zone_enable();
 
-            set_anchors(&*obj, vec![Edge::Bottom]);
+            set_anchors(&*obj, vec![Edge::Top, Edge::Left, Edge::Right]);
 
             glib::spawn_future_local(glib::clone!(
                 #[weak(rename_to = imp)]
@@ -65,6 +72,30 @@ mod imp {
                     imp.setup().await;
                 }
             ));
+
+            glib::timeout_add_local(
+                std::time::Duration::from_secs(1),
+                glib::clone!(
+                    #[weak(rename_to = imp)]
+                    self,
+                    #[upgrade_or]
+                    glib::ControlFlow::Break,
+                    move || {
+                        match glib::DateTime::now_local() {
+                            Ok(date) => {
+                                imp.time.set_label(
+                                    &date.format("%a %b %d %I:%M").expect("failed to format"),
+                                );
+                            }
+                            Err(e) => {
+                                glib::g_warning!("Bar", "Couldn't get local time: {}", e);
+                            }
+                        }
+
+                        glib::ControlFlow::Continue
+                    }
+                ),
+            );
         }
     }
     impl WidgetImpl for Bar {}

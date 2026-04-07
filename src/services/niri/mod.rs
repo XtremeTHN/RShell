@@ -78,13 +78,37 @@ mod imp {
                         self.windows_hash.borrow_mut().0.remove(&id);
                     }
                     Event::WindowOpenedOrChanged { window } => {
-                        self.windows_hash.borrow_mut().0.insert(window.id, window);
+                        self.windows_hash
+                            .borrow_mut()
+                            .0
+                            .insert(window.id, window.clone());
+
+                        if window.is_focused {
+                            let win = NiriWindow(window);
+                            self.focused_window.replace(Some(win));
+                            obj.notify_focused_window();
+                        }
                     }
                     Event::WindowFocusChanged { id } => {
                         if let Some(id) = id
                             && let Some(window) = self.windows_hash.borrow().0.get(&id)
                         {
                             let win = NiriWindow(window.clone());
+                            self.focused_window.replace(Some(win));
+                            obj.notify_focused_window();
+                        }
+                    }
+                    Event::WindowLayoutsChanged { changes: _ } => {
+                        // TODO: maybe implement this instead of querying the focused window
+                    }
+                    Event::WorkspaceActiveWindowChanged {
+                        workspace_id: _,
+                        active_window_id,
+                    } => {
+                        if let Some(id) = active_window_id
+                            && let Some(win) = self.windows_hash.borrow().0.get(&id)
+                        {
+                            let win = NiriWindow(win.clone());
                             self.focused_window.replace(Some(win));
                             obj.notify_focused_window();
                         }

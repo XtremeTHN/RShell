@@ -1,9 +1,11 @@
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gtk::{
-    gio::{self, ApplicationFlags},
+    // gio::{self, ApplicationFlags, prelude::*},
     glib,
 };
+
+use gio::{self, ApplicationFlags, prelude::ApplicationCommandLineExt};
 
 use crate::ui::bar::Bar;
 
@@ -23,11 +25,29 @@ mod imp {
     impl ObjectImpl for RShellApp {
         fn constructed(&self) {
             self.parent_constructed();
-            // let obj = self.obj();
         }
     }
 
     impl ApplicationImpl for RShellApp {
+        fn command_line(&self, command_line: &gio::ApplicationCommandLine) -> glib::ExitCode {
+            if command_line.is_remote() {
+                command_line.print_literal(&format!(
+                    "RShell is already running (on {})\n",
+                    std::process::id()
+                ));
+                return glib::ExitCode::FAILURE;
+            } else {
+                self.activate();
+            }
+
+            glib::ExitCode::SUCCESS
+        }
+    }
+
+    impl GtkApplicationImpl for RShellApp {}
+    impl AdwApplicationImpl for RShellApp {}
+
+    impl RShellApp {
         fn activate(&self) {
             let application = self.obj();
             let window = application.active_window().unwrap_or_else(|| {
@@ -38,9 +58,6 @@ mod imp {
             window.present();
         }
     }
-
-    impl GtkApplicationImpl for RShellApp {}
-    impl AdwApplicationImpl for RShellApp {}
 }
 
 glib::wrapper! {
@@ -53,8 +70,7 @@ impl RShellApp {
     pub fn new(application_id: &str) -> Self {
         glib::Object::builder()
             .property("application-id", application_id)
-            // .property("flags", ApplicationFlags::HANDLES_COMMAND_LINE)
-            .property("flags", ApplicationFlags::FLAGS_NONE)
+            .property("flags", ApplicationFlags::HANDLES_COMMAND_LINE)
             .property("resource-base-path", "/com/github/XtremeTHN/RShell")
             .build()
     }

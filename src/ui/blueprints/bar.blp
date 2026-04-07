@@ -2,22 +2,31 @@ using Gtk 4.0;
 using Adw 1;
 
 template $Bar: Adw.ApplicationWindow {
-    height-request: 40;
+    styles ["bar"]
+
+    height-request: 20;
     content: CenterBox {
+        styles ["box-10"]
         start-widget: Box {
             orientation: horizontal;
+            spacing: 10;
+
             // impl in src/bar/ui/
             $Workspaces {
+                styles ["container"]
                 orientation: horizontal;
-                valign: center;
                 spacing: 5;
             }
-            Label active_window {}
+            $ActiveWindow {
+                styles ["container"]
+            }
         };
 
-        // end-widget: Box {
-        //     orientation: horizontal;
-        //     Label time {}
-        // };
+        end-widget: Box {
+            orientation: horizontal;
+            Label time {
+                styles ["container"]
+            }
+        };
     };
 }

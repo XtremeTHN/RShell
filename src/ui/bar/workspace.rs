@@ -71,6 +71,7 @@ impl Workspace {
     pub fn new(id: u8) -> Self {
         let obj: Workspace = Object::builder().property("id", id).build();
         obj.set_css_classes(&["workspace"]);
+        obj.set_valign(gtk::Align::Center);
         obj
     }
 }
