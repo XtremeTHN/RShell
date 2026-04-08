@@ -16,5 +16,6 @@
         "stripblanks",
         "wkspc",
         "Xtreme"
-    ]
+    ],
+    "mesonbuild.configureOnOpen": false
 }

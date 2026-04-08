@@ -2,6 +2,7 @@ use gtk::glib::{self, Object};
 
 mod imp {
     use adw::subclass::prelude::{ObjectImplExt, ObjectSubclassExt};
+    use astal_apps::prelude::{ApplicationExt, AppsExt};
     use gtk::{
         glib::{
             self,
@@ -10,14 +11,16 @@ mod imp {
         prelude::BoxExt,
         subclass::{box_::BoxImpl, widget::WidgetImpl},
     };
+    use niri_ipc::Window;
 
-    use crate::services::niri::Niri;
+    use crate::services::niri::{Niri, types::OptionalRef};
 
     #[derive(glib::Properties, Default)]
     #[properties(wrapper_type = super::ActiveWindow)]
     pub struct ActiveWindow {
         pub icon: gtk::Image,
         pub label: gtk::Label,
+        pub previous_focused_id: OptionalRef<String>,
     }
 
     #[glib::object_subclass]
@@ -40,7 +43,13 @@ mod imp {
                 self,
                 move |n| {
                     if let Some(win) = n.focused_window() {
-                        imp.app_icon_name(win.0.app_id);
+                        if *imp.previous_focused_id.borrow() != win.0.app_id {
+                            imp.icon
+                                .set_paintable(imp.app_icon_name(win.0.app_id.clone()).as_ref());
+                        }
+
+                        imp.previous_focused_id.replace(win.0.app_id);
+
                         imp.label
                             .set_label(&win.0.title.unwrap_or(String::from("NixOS")));
                     };
@@ -61,16 +70,50 @@ mod imp {
     impl BoxImpl for ActiveWindow {}
 
     impl ActiveWindow {
-        fn app_icon_name(&self, app_id: Option<String>) -> gtk::IconPaintable {
-            let theme = gtk::IconTheme::default();
-            theme.lookup_icon(
-                &app_id.unwrap_or(String::new()),
+        fn lookup_icon(&self, icon_name: &str) -> gtk::IconPaintable {
+            gtk::IconTheme::default().lookup_icon(
+                icon_name,
                 &["application-x-executable-symbolic"],
                 64,
                 1,
                 gtk::TextDirection::Ltr,
                 gtk::IconLookupFlags::PRELOAD,
             )
+        }
+
+        fn icon_from_app(&self, app: astal_apps::Application) -> Option<gtk::IconPaintable> {
+            let icon_name = app.icon_name();
+
+            match std::fs::exists(&*icon_name) {
+                Ok(true) => {
+                    let file = gio::File::for_path(&*icon_name);
+                    Some(gtk::IconPaintable::for_file(&file, 64, 1))
+                }
+                Ok(false) => Some(self.lookup_icon(&icon_name)),
+                Err(e) => {
+                    glib::g_warning!(
+                        "ActiveWindow",
+                        "Couldn't prove the existence of icon \"{}\": {}",
+                        icon_name,
+                        e
+                    );
+                    None
+                }
+            }
+        }
+
+        fn app_icon_name(&self, app_id: Option<String>) -> Option<gtk::IconPaintable> {
+            let icon = app_id.as_deref().unwrap_or_default();
+            let theme = gtk::IconTheme::default();
+
+            if theme.has_icon(icon) {
+                Some(self.lookup_icon(icon))
+            } else {
+                let apps = astal_apps::Apps::default();
+                apps.fuzzy_query(app_id.as_deref())
+                    .into_iter()
+                    .find_map(|app| self.icon_from_app(app))
+            }
         }
     }
 }

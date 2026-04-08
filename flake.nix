@@ -1,9 +1,19 @@
 {
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    astal = {
+      url = "github:aylur/astal";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-  outputs = { self, nixpkgs }: let
+  outputs = { self, nixpkgs, astal }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+
+    astalpkgs = with astal.packages.${system}; [
+      apps
+    ];
 
     nativeBuildInputs = with pkgs; [
       rustc
@@ -21,7 +31,7 @@
       gtk4
       libadwaita
       gtk4-layer-shell
-    ];
+    ] ++ astalpkgs;
 
     pname = "rshell";
     version = "0.1.0";
